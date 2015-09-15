@@ -382,12 +382,3 @@ Function Export-LTScript {
     (Get-Content $sTranscriptFile -tail 1000 -readcount 0) | Set-Content $sTranscriptFile -Force
 
 #endregion
-
-
-.PARAMETER Query
-        Input your MySQL query in double quotes.
-
-
-
-
-
