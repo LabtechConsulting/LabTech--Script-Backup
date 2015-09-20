@@ -28,8 +28,7 @@
  
 #region-[Declarations]----------------------------------------------------------
     
-    #Set Error Action to Silently Continue
-    $ErrorActionPreference = "SilentlyContinue"
+    $Date = Get-Date
     
     #Get/Save config info
     if($(Test-Path $PSScriptRoot\LT-ScriptExport-Config.xml) -eq $false) {
@@ -41,14 +40,15 @@
 	<MySQLDatabase></MySQLDatabase>
 	<MySQLHost></MySQLHost>
 	<CredPath></CredPath>
+    <LastExport>0</LastExport>
 </Settings>
 '@
         
         #Create config file
-        $Config.Settings.LogPath = "$(Read-Host "Path of log file ($($env:windir)\LTScv\Logs)")"
-        if ($Config.Settings.LogPath -eq '') {$Config.Settings.LogPath = "$($env:windir)\LTScv\Logs"}
-        $Config.Settings.BackupRoot = "$(Read-Host "Path of exported scripts ($($env:windir)\Program Files(x86)\LabTech\Backup\Scripts)")"
-        if ($Config.Settings.BackupRoot -eq '') {$Config.Settings.BackupRoot = "$($env:windir)\Program Files(x86)\LabTech\Backup\Scripts"}
+        $Config.Settings.LogPath = "$(Read-Host "Path of log file ($($env:windir)\LTSvc\Logs)")"
+        if ($Config.Settings.LogPath -eq '') {$Config.Settings.LogPath = "$($env:windir)\LTSvc\Logs"}
+        $Config.Settings.BackupRoot = "$(Read-Host "Path of exported scripts (${env:ProgramFiles(x86)}\LabTech\Backup\Scripts)")"
+        if ($Config.Settings.BackupRoot -eq '') {$Config.Settings.BackupRoot = "${env:ProgramFiles(x86)}\LabTech\Backup\Scripts"}
         $Config.Settings.MySQLDatabase = "$(Read-Host "Name of LabTech database (labtech)")"
         if ($Config.Settings.MySQLDatabase -eq '') {$Config.Settings.MySQLDatabase = "labtech"}
         $Config.Settings.MySQLHost = "$(Read-Host "FQDN of LabTechServer (localhost)")"
@@ -61,6 +61,9 @@
     [xml]$Config = Get-Content "$PSScriptRoot\LT-ScriptExport-Config.xml"
     }
 
+    #Location to credentials file
+    $CredPath = $Config.Settings.CredPath
+    
     #Get/Save user/password info
     if ($(Test-Path $CredPath) -eq $false) {New-Item -ItemType Directory -Force -Path $CredPath | Out-Null}
     if($(Test-Path $CredPath\LTDBCredentials.xml) -eq $false){Get-Credential -Message "Please provide the credentials to the LabTech MySQL database." | Export-Clixml $CredPath\LTDBCredentials.xml -Force}
@@ -77,9 +80,6 @@
     $MySQLHost = $Config.Settings.MySQLHost
     $MySQLAdminPassword = (IMPORT-CLIXML $CredPath\LTDBCredentials.xml).GetNetworkCredential().Password
     $MySQLAdminUserName = (IMPORT-CLIXML $CredPath\LTDBCredentials.xml).GetNetworkCredential().UserName
-
-    #Location to credentials file
-    $CredPath = $Config.Settings.CredPath
 
 #endregion
  
@@ -185,9 +185,7 @@ Function Export-LTScript {
     [CmdletBinding()]
         Param(
         [Parameter(Mandatory=$True,Position=1)]
-        [string]$ScriptID,
-        [Parameter(Mandatory=$True,Position=2)]
-        [string]$FilePath
+        [string]$ScriptID
     )
 
     #LabTech XML template
@@ -256,20 +254,20 @@ Function Export-LTScript {
     
     #Format Script Name
     #Remove special characters
-    $FileName = $($ExportTemplate.LabTech_Expansion.PackedScript.NewDataSet.Table.ScriptName).Replace('*','')
-    $FileName = $FileName.Replace('/','')
+    $FileName = $($ScriptXML.ScriptName).Replace('*','')
+    $FileName = $FileName.Replace('/','-')
     $FileName = $FileName.Replace('<','')
     $FileName = $FileName.Replace('>','')
     $FileName = $FileName.Replace(':','')
     $FileName = $FileName.Replace('"','')
-    $FileName = $FileName.Replace('\','')
+    $FileName = $FileName.Replace('\','-')
     $FileName = $FileName.Replace('|','')
     $FileName = $FileName.Replace('?','')
     #Add last modification date
     $FileName = $($FileName) + '--' + $($ScriptXML.Last_Date.ToString("yyyy-MM-dd--HH-mm-ss"))
     #Add last user to modify
     $FileName = $($FileName) + '--' + $($ScriptXML.Last_User.Substring(0, $ScriptXML.Last_User.IndexOf('@')))
-    $ScriptFolderName = $($FolderData.Name)
+    
 
     #Check folder information
 
@@ -298,14 +296,15 @@ Function Export-LTScript {
             #Format the folder name.
             #Remove special characters
             $FolderName = $($FolderData.Name).Replace('*','')
-            $FolderName = $FolderName.Replace('/','')
+            $FolderName = $FolderName.Replace('/','-')
             $FolderName = $FolderName.Replace('<','')
             $FolderName = $FolderName.Replace('>','')
             $FolderName = $FolderName.Replace(':','')
             $FolderName = $FolderName.Replace('"','')
-            $FolderName = $FolderName.Replace('\','')
+            $FolderName = $FolderName.Replace('\','-')
             $FolderName = $FolderName.Replace('|','')
             $FolderName = $FolderName.Replace('?','')
+            
             
             # Save folder data to the template.
             $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.FolderID = "$($FolderData.FolderID)"
@@ -315,13 +314,13 @@ Function Export-LTScript {
         }
     }
 
-    #Create Folder Structure
-    If ($($ScriptXML.FolderId) -eq 0) {
+    #Create Folder Structure. Check for parent folder 
+    If ($($FolderData.ParentId) -eq 0) {
         #Create folder
         New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
         
         #Save XML
-        $ExportTemplate.Save("$BackupRoot\$($FolderData.Name)\$($FileName).xml")
+        $ExportTemplate.Save("$BackupRoot\$FolderName\$($FileName).xml")
     }
     Else {
         #Query info for parent folder
@@ -330,12 +329,12 @@ Function Export-LTScript {
         #Format parent folder name
         #Remove special characters
         $ParentFolderName = $ParentFolderName.Replace('*','')
-        $ParentFolderName = $ParentFolderName.Replace('/','')
+        $ParentFolderName = $ParentFolderName.Replace('/','-')
         $ParentFolderName = $ParentFolderName.Replace('<','')
         $ParentFolderName = $ParentFolderName.Replace('>','')
         $ParentFolderName = $ParentFolderName.Replace(':','')
         $ParentFolderName = $ParentFolderName.Replace('"','')
-        $ParentFolderName = $ParentFolderName.Replace('\','')
+        $ParentFolderName = $ParentFolderName.Replace('\','-')
         $ParentFolderName = $ParentFolderName.Replace('|','')
         $ParentFolderName = $ParentFolderName.Replace('?','')
 
@@ -356,29 +355,40 @@ Function Export-LTScript {
  
     Start-Transcript -Path $sTranscriptFile -Force -Append
 
+    if ((Test-Path $BackupRoot) -eq $false){New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null}
+
     Write-Output "Getting list of all scripts."
     
+    $ScriptIDs = @{}
     #Query list of all ScriptID's
-    $ScriptIDs = Get-LTData "SELECT ScriptID FROM lt_scripts"
-
-    Write-Output "$($ScriptIDs.count) scripts to process."
+    if ($($Config.Settings.LastExport) -eq 0) {
+        $ScriptIDs = Get-LTData "SELECT ScriptID FROM lt_scripts"
+    }
+    else{
+        $Query = $("SELECT ScriptID FROM lt_scripts WHERE Last_Date > " + "'" + $($Config.Settings.LastExport) +"'")
+        $ScriptIDs = Get-LTData $Query   
+    }
+    
+    Write-Output "$(@($ScriptIDs).count) scripts to process."
 
     #Process each ScriptID
     $n = 0
     foreach ($ScriptID in $ScriptIDs) {
         #Progress bar
         $n++
-        Write-Progress -Activity "Backing up LT scripts to $BackupRoot" -Status "Processing ScriptID $($ScriptID.ScriptID)" -PercentComplete  ($n / $ScriptIDs.Count*100)
+        Write-Progress -Activity "Backing up LT scripts to $BackupRoot" -Status "Processing ScriptID $($ScriptID.ScriptID)" -PercentComplete  ($n / @($ScriptIDs).count*100)
         
         #Export current script
-        Export-LTScript -ScriptID $($ScriptID.ScriptID) -FilePath $FilePath
+        Export-LTScript -ScriptID $($ScriptID.ScriptID)
     }
 
     Write-Output "Export finished."
-    
+    $Config.Settings.LastExport = "$($Date.ToString("yyy-MM-dd HH:mm:ss"))"
+    $Config.Save("$PSScriptRoot\LT-ScriptExport-Config.xml")
+
     Stop-Transcript
 
-    #Limit Log file to 1000 lines
-    (Get-Content $sTranscriptFile -tail 1000 -readcount 0) | Set-Content $sTranscriptFile -Force
+    #Limit Log file to 50000 lines
+    (Get-Content $sTranscriptFile -tail 50000 -readcount 0) | Set-Content $sTranscriptFile -Force -Encoding Ascii
 
 #endregion
