@@ -28,6 +28,8 @@
  
 #region-[Declarations]----------------------------------------------------------
     
+    $ErrorActionPreference = "Stop"
+    
     $Date = Get-Date
     
     #Get/Save config info
