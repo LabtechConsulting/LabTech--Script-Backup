@@ -22,11 +22,19 @@
     Website:        www.labtechconsulting.com
     Creation Date:  9/11/2015
     Purpose/Change: Initial script development
+
+    Version:        1.1
+    Author:         Chris Taylor
+    Website:        www.labtechconsulting.com
+    Creation Date:  9/23/2015
+    Purpose/Change: Added error catching
 #>
 
 #Requires -Version 3.0 
  
 #region-[Declarations]----------------------------------------------------------
+    
+    $ScriptVersion = "1.1"
     
     $ErrorActionPreference = "Stop"
     
@@ -45,19 +53,25 @@
     <LastExport>0</LastExport>
 </Settings>
 '@
-        
-        #Create config file
-        $Config.Settings.LogPath = "$(Read-Host "Path of log file ($($env:windir)\LTSvc\Logs)")"
-        if ($Config.Settings.LogPath -eq '') {$Config.Settings.LogPath = "$($env:windir)\LTSvc\Logs"}
-        $Config.Settings.BackupRoot = "$(Read-Host "Path of exported scripts (${env:ProgramFiles(x86)}\LabTech\Backup\Scripts)")"
-        if ($Config.Settings.BackupRoot -eq '') {$Config.Settings.BackupRoot = "${env:ProgramFiles(x86)}\LabTech\Backup\Scripts"}
-        $Config.Settings.MySQLDatabase = "$(Read-Host "Name of LabTech database (labtech)")"
-        if ($Config.Settings.MySQLDatabase -eq '') {$Config.Settings.MySQLDatabase = "labtech"}
-        $Config.Settings.MySQLHost = "$(Read-Host "FQDN of LabTechServer (localhost)")"
-        if ($Config.Settings.MySQLHost -eq '') {$Config.Settings.MySQLHost = "localhost"}
-        $Config.Settings.CredPath = "$(Read-Host "Path of credentials ($PSScriptRoot)")"
-        if ($Config.Settings.CredPath -eq '') {$Config.Settings.CredPath = "$PSScriptRoot"}
-        $Config.Save("$PSScriptRoot\LT-ScriptExport-Config.xml")
+        try {
+            #Create config file
+            $Config.Settings.LogPath = "$(Read-Host "Path of log file ($($env:windir)\LTSvc\Logs)")"
+            if ($Config.Settings.LogPath -eq '') {$Config.Settings.LogPath = "$($env:windir)\LTSvc\Logs"}
+            $Config.Settings.BackupRoot = "$(Read-Host "Path of exported scripts (${env:ProgramFiles(x86)}\LabTech\Backup\Scripts)")"
+            if ($Config.Settings.BackupRoot -eq '') {$Config.Settings.BackupRoot = "${env:ProgramFiles(x86)}\LabTech\Backup\Scripts"}
+            $Config.Settings.MySQLDatabase = "$(Read-Host "Name of LabTech database (labtech)")"
+            if ($Config.Settings.MySQLDatabase -eq '') {$Config.Settings.MySQLDatabase = "labtech"}
+            $Config.Settings.MySQLHost = "$(Read-Host "FQDN of LabTechServer (localhost)")"
+            if ($Config.Settings.MySQLHost -eq '') {$Config.Settings.MySQLHost = "localhost"}
+            $Config.Settings.CredPath = "$(Read-Host "Path of credentials ($PSScriptRoot)")"
+            if ($Config.Settings.CredPath -eq '') {$Config.Settings.CredPath = "$PSScriptRoot"}
+            $Config.Save("$PSScriptRoot\LT-ScriptExport-Config.xml")
+        }
+        Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Error durring config creation: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
     }
     Else {
     [xml]$Config = Get-Content "$PSScriptRoot\LT-ScriptExport-Config.xml"
@@ -71,8 +85,8 @@
     if($(Test-Path $CredPath\LTDBCredentials.xml) -eq $false){Get-Credential -Message "Please provide the credentials to the LabTech MySQL database." | Export-Clixml $CredPath\LTDBCredentials.xml -Force}
     
     #Transcript File Info
-    $sTranscriptName = "LT-ScriptExport.log"
-    $sTranscriptFile = ($Config.Settings.LogPath) + "\" + $sTranscriptName
+    $TranscriptName = "LT-ScriptExport.log"
+    $TranscriptFile = ($Config.Settings.LogPath) + "\" + $TranscriptName
 
     #Location to the backp repository
     $BackupRoot = $Config.Settings.BackupRoot
@@ -275,8 +289,15 @@ Function Export-LTScript {
 
     #Check if script is at root and not in a folder
     If ($($ScriptXML.FolderId) -eq 0) {
-        #Delete folder information from template
-        $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+        try {
+            #Delete folder information from template
+            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+        }
+        Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
     }
     Else {    
         #Query MySQL for folder data.
@@ -290,9 +311,16 @@ Function Export-LTScript {
             #Set to FolderID 0
             $ExportTemplate.LabTech_Expansion.PackedScript.NewDataSet.Table.FolderId = "0"
             $ScriptXML.FolderID = 0
-                        
-            #Delete folder information from template
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+            
+            try {            
+                #Delete folder information from template
+                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+            }
+            Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+            }
         }
         Else {
             #Format the folder name.
@@ -307,7 +335,6 @@ Function Export-LTScript {
             $FolderName = $FolderName.Replace('|','')
             $FolderName = $FolderName.Replace('?','')
             
-            
             # Save folder data to the template.
             $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.FolderID = "$($FolderData.FolderID)"
             $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.ParentID = "$($FolderData.ParentID)"
@@ -318,11 +345,18 @@ Function Export-LTScript {
 
     #Create Folder Structure. Check for parent folder 
     If ($($FolderData.ParentId) -eq 0) {
-        #Create folder
-        New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
+        try {
+            #Create folder
+            New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
         
-        #Save XML
-        $ExportTemplate.Save("$BackupRoot\$FolderName\$($FileName).xml")
+            #Save XML
+            $ExportTemplate.Save("$BackupRoot\$FolderName\$($FileName).xml")
+        }
+        Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
     }
     Else {
         #Query info for parent folder
@@ -342,11 +376,18 @@ Function Export-LTScript {
 
         $FilePath = "$BackupRoot\$($ParentFolderName)\$($ScriptFolderName)"
 
-        #Create folder
-        New-Item -ItemType Directory -Force -Path $FilePath | Out-Null
+        try {
+            #Create folder
+            New-Item -ItemType Directory -Force -Path $FilePath | Out-Null
         
-        #Save XML
-        $ExportTemplate.Save("$FilePath\$($FileName).xml")
+            #Save XML
+            $ExportTemplate.Save("$FilePath\$($FileName).xml")
+        }
+        Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
     }
 
 }
@@ -354,10 +395,21 @@ Function Export-LTScript {
 #endregion
 
 #region-[Execution]------------------------------------------------------------
- 
-    Start-Transcript -Path $sTranscriptFile -Force -Append
+    try {
+    #Create log
+    if ((Test-Path $Config.Settings.LogPath) -eq $false){New-Item -ItemType Directory -Force -Path $Config.Settings.LogPath | Out-Null}
+    Start-Transcript -Path $TranscriptFile -Force -Append
 
+    #Check backup directory
     if ((Test-Path $BackupRoot) -eq $false){New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null}
+    }
+    Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
+    
+    Write-Output "Script version: $ScriptVersion"
 
     Write-Output "Getting list of all scripts."
     
@@ -385,12 +437,20 @@ Function Export-LTScript {
     }
 
     Write-Output "Export finished."
-    $Config.Settings.LastExport = "$($Date.ToString("yyy-MM-dd HH:mm:ss"))"
-    $Config.Save("$PSScriptRoot\LT-ScriptExport-Config.xml")
+    
+    try {
+        $Config.Settings.LastExport = "$($Date.ToString("yyy-MM-dd HH:mm:ss"))"
+        $Config.Save("$PSScriptRoot\LT-ScriptExport-Config.xml")
+    }
+    Catch {
+            $ErrorMessage = $_.Exception.Message
+            $FailedItem = $_.Exception.ItemName
+            Write-Error "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]"
+        }
 
     Stop-Transcript
 
     #Limit Log file to 50000 lines
-    (Get-Content $sTranscriptFile -tail 50000 -readcount 0) | Set-Content $sTranscriptFile -Force -Encoding Ascii
+    (Get-Content $TranscriptFile -tail 50000 -readcount 0) | Set-Content $TranscriptFile -Force -Encoding Ascii
 
 #endregion
