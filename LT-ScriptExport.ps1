@@ -650,7 +650,7 @@ Function Export-LTScript {
         $ParentFolderName = $ParentFolderName.Replace('|','')
         $ParentFolderName = $ParentFolderName.Replace('?','')
 
-        $FilePath = "$BackupRoot\$($ParentFolderName)\$($ScriptFolderName)"
+        $FilePath = "$BackupRoot\$($ParentFolderName)\$($($FolderData.Name))"
 
         try {
             #Create folder
