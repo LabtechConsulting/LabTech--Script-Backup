@@ -451,6 +451,6 @@ Function Export-LTScript {
     Stop-Transcript
 
     #Limit Log file to 50000 lines
-    (Get-Content $TranscriptFile -tail 50000 -readcount 0) | Set-Content $TranscriptFile -Force -Encoding Ascii
+    (Get-Content $TranscriptFile -tail 50000 -readcount 0) | Set-Content $TranscriptFile -Force -Encoding Unicode
 
 #endregion
