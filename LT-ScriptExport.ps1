@@ -249,7 +249,7 @@ Function Log-Error{
   .DESCRIPTION
     Writes the passed error to a new line at the end of the specified log file
   
-  .PARAMETER LogPath
+  .PARAMETER FullLogPath
     Mandatory. Full path of the log file you want to write to. Example: C:\Windows\Temp\Test_Script.log
   
   .PARAMETER ErrorDesc
@@ -276,7 +276,7 @@ Function Log-Error{
     Purpose/Change: Added debug mode support. Added -ExitGracefully parameter functionality
                     
   .EXAMPLE
-    Log-Error -LogPath "C:\Windows\Temp\Test_Script.log" -ErrorDesc $_.Exception -ExitGracefully $True
+    Log-Error -FullLogPath "C:\Windows\Temp\Test_Script.log" -ErrorDesc $_.Exception -ExitGracefully $True
   #>
   
   [CmdletBinding()]
@@ -293,7 +293,7 @@ Function Log-Error{
     
     #If $ExitGracefully = True then run Log-Finish and exit script
     If ($ExitGracefully -eq $True){
-      Log-Finish -LogPath $FullLogPath
+      Log-Finish -FullLogPath $FullLogPath
       Breaåk
     }
   }
@@ -344,10 +344,10 @@ Function Log-Finish{
     Purpose/Change: Added log line count limit.
     
   .EXAMPLE
-    Log-Finish -LogPath "C:\Windows\Temp\Test_Script.log"
+    Log-Finish -FullLogPath "C:\Windows\Temp\Test_Script.log"
 
 .EXAMPLE
-    Log-Finish -LogPath "C:\Windows\Temp\Test_Script.log" -NoExit $True
+    Log-Finish -FullLogPath "C:\Windows\Temp\Test_Script.log" -NoExit $True
   #>
   
   [CmdletBinding()]
@@ -436,7 +436,7 @@ Function Get-LTData {
         }
 
         Catch {
-          Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to run query : $query `n$Error[0]"
+          Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to run query : $query `n$Error[0]"
         }
     }
 
@@ -572,7 +572,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
     Else {    
@@ -595,7 +595,7 @@ Function Export-LTScript {
             Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
             }
         }
         Else {
@@ -631,7 +631,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
     Else {
@@ -662,7 +662,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
 
@@ -682,7 +682,7 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     
     Log-Write -FullLogPath $FullLogPath -LineValue "Getting list of all scripts."
@@ -719,7 +719,7 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]"
         }
 
     Log-Finish -FullLogPath $FullLogPath
