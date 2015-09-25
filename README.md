@@ -5,3 +5,6 @@ The last date and user modified will be appended to the script so that it can be
 The MySQL .NET connector is required.
 https://dev.mysql.com/downloads/connector/net/6.9.html
 
+For more information please go to:
+http://labtechconsulting.com/labtech-script-backup-and-version-control/
+
