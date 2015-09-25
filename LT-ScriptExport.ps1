@@ -140,6 +140,7 @@ Function Log-Start{
     Author:         Chris Taylor
     Creation Date:  7/17/2015
     Purpose/Change: Added directory creation if not present.
+                    Added Append option
 
 
   .EXAMPLE
@@ -331,6 +332,8 @@ Function Log-Finish{
     Creation Date:  01/08/12
     Purpose/Change: Added option to not exit calling script if required (via optional parameter)
 
+    
+
   .EXAMPLE
     Log-Finish -LogPath "C:\Windows\Temp\Test_Script.log"
 
@@ -340,7 +343,7 @@ Function Log-Finish{
   
   [CmdletBinding()]
   
-  Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$false)][string]$NoExit)
+  Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$false)][string]$NoExit, [Parameter(Mandatory=$false)][int]$Limit )
   
   Process{
     Add-Content -Path $LogPath -Value ""
@@ -354,6 +357,10 @@ Function Log-Finish{
     Write-Debug "Finished processing at [$([DateTime]::Now)]."
     Write-Debug "***************************************************************************************************"
   
+    if ($Limit){
+        #Limit Log file to 50000 lines
+        (Get-Content $LogPath -tail $Limit -readcount 0) | Set-Content $LogPath -Force -Encoding Unicode
+    }
     #Exit calling script if NoExit has not been specified or is set to False
     If(!($NoExit) -or ($NoExit -eq $False)){
       Exit
@@ -658,7 +665,7 @@ Function Export-LTScript {
     try {
     #Create log
     if ((Test-Path $Config.Settings.LogPath) -eq $false){New-Item -ItemType Directory -Force -Path $Config.Settings.LogPath | Out-Null}
-    Log-Start -LogPath $LogPath -LogName $LogName -ScriptVersion $ScriptVersion
+    Log-Start -LogPath $LogPath -LogName $LogName -ScriptVersion $ScriptVersion -Append
    
     #Check backup directory
     if ((Test-Path $BackupRoot) -eq $false){New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null}
