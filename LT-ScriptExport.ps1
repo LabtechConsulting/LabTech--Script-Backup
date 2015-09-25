@@ -70,7 +70,7 @@
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Error durring config creation: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Error durring config creation: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
     Else {
@@ -87,6 +87,8 @@
     #Log File Info
     $LogName = "LT-ScriptExport.log"
     $LogPath = ($Config.Settings.LogPath)
+    $FullLogPath = $LogPath + "\" + $LogName
+
 
     #Location to the backp repository
     $BackupRoot = $Config.Settings.BackupRoot
@@ -141,6 +143,7 @@ Function Log-Start{
     Creation Date:  7/17/2015
     Purpose/Change: Added directory creation if not present.
                     Added Append option
+                    
 
 
   .EXAMPLE
@@ -152,10 +155,10 @@ Function Log-Start{
   Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$true)][string]$LogName, [Parameter(Mandatory=$true)][string]$ScriptVersion, [Parameter(Mandatory=$false)][switch]$Append)
   
   Process{
-    $sFullPath = $LogPath + "\" + $LogName
+    $FullLogPath = $LogPath + "\" + $LogName
     #Check if file exists and delete if it does
-    If((Test-Path -Path $sFullPath) -and $Append -ne $true){
-      Remove-Item -Path $sFullPath -Force
+    If((Test-Path -Path $FullLogPath) -and $Append -ne $true){
+      Remove-Item -Path $FullLogPath -Force
     }
 
     #Check if folder exists if not create    
@@ -164,18 +167,18 @@ Function Log-Start{
     }
 
     #Create file and start logging
-    If($(Test-Path -Path $sFullPath) -ne $true) {
+    If($(Test-Path -Path $FullLogPath) -ne $true) {
         New-Item -Path $LogPath -Value $LogName -ItemType File
     }
 
-    Add-Content -Path $sFullPath -Value "***************************************************************************************************"
-    Add-Content -Path $sFullPath -Value "Started processing at [$([DateTime]::Now)]."
-    Add-Content -Path $sFullPath -Value "***************************************************************************************************"
-    Add-Content -Path $sFullPath -Value ""
-    Add-Content -Path $sFullPath -Value "Running script version [$ScriptVersion]."
-    Add-Content -Path $sFullPath -Value ""
-    Add-Content -Path $sFullPath -Value "***************************************************************************************************"
-    Add-Content -Path $sFullPath -Value ""
+    Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
+    Add-Content -Path $FullLogPath -Value "Started processing at [$([DateTime]::Now)]."
+    Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
+    Add-Content -Path $FullLogPath -Value ""
+    Add-Content -Path $FullLogPath -Value "Running script version [$ScriptVersion]."
+    Add-Content -Path $FullLogPath -Value ""
+    Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
+    Add-Content -Path $FullLogPath -Value ""
   
     #Write to screen for debug mode
     Write-Debug "***************************************************************************************************"
@@ -221,15 +224,15 @@ Function Log-Write{
     Purpose/Change: Added debug mode support
 
   .EXAMPLE
-    Log-Write -LogPath "C:\Windows\Temp\Test_Script.log" -LineValue "This is a new line which I am appending to the end of the log file."
+    Log-Write -FullLogPath "C:\Windows\Temp\Test_Script.log" -LineValue "This is a new line which I am appending to the end of the log file."
   #>
   
   [CmdletBinding()]
   
-  Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$true)][string]$LineValue)
+  Param ([Parameter(Mandatory=$true)][string]$FullLogPath, [Parameter(Mandatory=$true)][string]$LineValue)
   
   Process{
-    Add-Content -Path $LogPath -Value $LineValue
+    Add-Content -Path $FullLogPath -Value $LineValue
     
     Write-Output $LineValue
 
@@ -271,17 +274,17 @@ Function Log-Error{
     Author:         Luca Sturlese
     Creation Date:  19/05/12
     Purpose/Change: Added debug mode support. Added -ExitGracefully parameter functionality
-
+                    
   .EXAMPLE
     Log-Error -LogPath "C:\Windows\Temp\Test_Script.log" -ErrorDesc $_.Exception -ExitGracefully $True
   #>
   
   [CmdletBinding()]
   
-  Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$true)][string]$ErrorDesc, [Parameter(Mandatory=$true)][boolean]$ExitGracefully)
+  Param ([Parameter(Mandatory=$true)][string]$FullLogPath, [Parameter(Mandatory=$true)][string]$ErrorDesc, [Parameter(Mandatory=$true)][boolean]$ExitGracefully)
   
   Process{
-    Add-Content -Path $LogPath -Value "Error: An error has occurred [$ErrorDesc]."
+    Add-Content -Path $FullLogPath -Value "Error: An error has occurred [$ErrorDesc]."
   
     Write-Error $ErrorDesc
 
@@ -290,7 +293,7 @@ Function Log-Error{
     
     #If $ExitGracefully = True then run Log-Finish and exit script
     If ($ExitGracefully -eq $True){
-      Log-Finish -LogPath $LogPath
+      Log-Finish -LogPath $FullLogPath
       Breaåk
     }
   }
@@ -309,6 +312,9 @@ Function Log-Finish{
 
   .PARAMETER NoExit
     Optional. If this is set to True, then the function will not exit the calling script, so that further execution can occur
+  
+  .PARAMETER Limit
+    Optional. Sets the max linecount of the script.
   
   .INPUTS
     Parameters above
@@ -332,8 +338,11 @@ Function Log-Finish{
     Creation Date:  01/08/12
     Purpose/Change: Added option to not exit calling script if required (via optional parameter)
 
+    Version:        1.3
+    Author:         Chris Taylor
+    Creation Date:  7/17/2015
+    Purpose/Change: Added log line count limit.
     
-
   .EXAMPLE
     Log-Finish -LogPath "C:\Windows\Temp\Test_Script.log"
 
@@ -343,13 +352,13 @@ Function Log-Finish{
   
   [CmdletBinding()]
   
-  Param ([Parameter(Mandatory=$true)][string]$LogPath, [Parameter(Mandatory=$false)][string]$NoExit, [Parameter(Mandatory=$false)][int]$Limit )
+  Param ([Parameter(Mandatory=$true)][string]$FullLogPath, [Parameter(Mandatory=$false)][string]$NoExit, [Parameter(Mandatory=$false)][int]$Limit )
   
   Process{
-    Add-Content -Path $LogPath -Value ""
-    Add-Content -Path $LogPath -Value "***************************************************************************************************"
-    Add-Content -Path $LogPath -Value "Finished processing at [$([DateTime]::Now)]."
-    Add-Content -Path $LogPath -Value "***************************************************************************************************"
+    Add-Content -Path $FullLogPath -Value ""
+    Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
+    Add-Content -Path $FullLogPath -Value "Finished processing at [$([DateTime]::Now)]."
+    Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
   
     #Write to screen for debug mode
     Write-Debug ""
@@ -359,7 +368,7 @@ Function Log-Finish{
   
     if ($Limit){
         #Limit Log file to 50000 lines
-        (Get-Content $LogPath -tail $Limit -readcount 0) | Set-Content $LogPath -Force -Encoding Unicode
+        (Get-Content $FullLogPath -tail $Limit -readcount 0) | Set-Content $FullLogPath -Force -Encoding Unicode
     }
     #Exit calling script if NoExit has not been specified or is set to False
     If(!($NoExit) -or ($NoExit -eq $False)){
@@ -427,7 +436,7 @@ Function Get-LTData {
         }
 
         Catch {
-          Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to run query : $query `n$Error[0]"
+          Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to run query : $query `n$Error[0]"
         }
     }
 
@@ -563,7 +572,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
     Else {    
@@ -572,8 +581,8 @@ Function Export-LTScript {
         
         #Check if folder is no longer present. 
         if ($FolderData -eq $null) {
-            Log-Write -LogPath "$($LogPath)\$($LogName)" -LineValue "ScritID $($ScriptXML.ScriptId) references folder $($ScriptXML.FolderId), this folder is no longer present. Setting to root folder."
-            Log-Write -LogPath "$($LogPath)\$($LogName)" -LineValue "It is recomended that you move this script to a folder."
+            Log-Write -FullLogPath $FullLogPath -LineValue "ScritID $($ScriptXML.ScriptId) references folder $($ScriptXML.FolderId), this folder is no longer present. Setting to root folder."
+            Log-Write -FullLogPath $FullLogPath -LineValue "It is recomended that you move this script to a folder."
             
             #Set to FolderID 0
             $ExportTemplate.LabTech_Expansion.PackedScript.NewDataSet.Table.FolderId = "0"
@@ -586,7 +595,7 @@ Function Export-LTScript {
             Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]"
             }
         }
         Else {
@@ -622,7 +631,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
     Else {
@@ -653,7 +662,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     }
 
@@ -673,11 +682,11 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]"
         }
     
-    Log-Write -LogPath "$($LogPath)\$($LogName)" -LineValue "Getting list of all scripts."
-    
+    Log-Write -FullLogPath $FullLogPath -LineValue "Getting list of all scripts."
+
     $ScriptIDs = @{}
     #Query list of all ScriptID's
     if ($($Config.Settings.LastExport) -eq 0) {
@@ -688,7 +697,7 @@ Function Export-LTScript {
         $ScriptIDs = Get-LTData $Query   
     }
     
-    Log-Write -LogPath "$($LogPath)\$($LogName)" -LineValue "$(@($ScriptIDs).count) scripts to process."
+    Log-Write -FullLogPath $FullLogPath -LineValue "$(@($ScriptIDs).count) scripts to process."
 
     #Process each ScriptID
     $n = 0
@@ -701,7 +710,7 @@ Function Export-LTScript {
         Export-LTScript -ScriptID $($ScriptID.ScriptID)
     }
 
-    Log-Write -LogPath "$($LogPath)\$($LogName)" -LineValue "Export finished."
+    Log-Write -FullLogPath $FullLogPath -LineValue "Export finished."
     
     try {
         $Config.Settings.LastExport = "$($Date.ToString("yyy-MM-dd HH:mm:ss"))"
@@ -710,12 +719,9 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath "$($LogPath)\$($LogName)"  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]"
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]"
         }
 
-    Log-Finish -LogPath "$($LogPath)\$($LogName)" -NoExit $True
-
-    #Limit Log file to 50000 lines
-    (Get-Content "$($LogPath)\$($LogName)" -tail 50000 -readcount 0) | Set-Content "$($LogPath)\$($LogName)" -Force -Encoding Unicode
+    Log-Finish -FullLogPath $FullLogPath
 
 #endregion
