@@ -1,0 +1,28 @@
+<LabTech_Expansion Version="100.332" Name="LabTech Script Expansion" Type="PackedScript">
+  <PackedScript>
+    <NewDataSet>
+      <Table>
+        <ScriptId>6571</ScriptId>
+        <FolderId>0</FolderId>
+        <ScriptName>LT-Scritp Backup</ScriptName>
+        <ScriptNotes>This script will export a copy of all LT scripts as an xml file. All scripts will have the last modified data and last user to modify appended to the file.
+Chris Taylor
+www.labtechconsulting.com
+9/25/2015</ScriptNotes>
+        <Permission>0,</Permission>
+        <EditPermission>0,</EditPermission>
+        <ComputerScript>1</ComputerScript>
+        <LocationScript>0</LocationScript>
+        <MaintenanceScript>0</MaintenanceScript>
+        <FunctionScript>0</FunctionScript>
+        <LicenseData>H4sIAAAAAAAEAO29B2AcSZYlJi9tynt/SvVK1+B0oQiAYBMk2JBAEOzBiM3mkuwdaUcjKasqgcplVmVdZhZAzO2dvPfee++999577733ujudTif33/8/XGZkAWz2zkrayZ4hgKrIHz9+fB8/Ih4/L6b5ssmfZm129PjN9So/2n18l38+frVenlTrZZvXRzuP73p/PT59typqvJMfvV4vZ9n1KH2dr9p8McnrdG9nRP/fvZ8ePNrdebR/kL784vFd743Hr6d1sWp/Mq+boloCdPiBfv/5upgdTT7N9x/s7Oxs3z+f7W/v7ub3tw/uT6fbOzv3d+5/mu3t3J/dN+/zC4/v+gP6jZP/B8+P+g7gAAAA</LicenseData>
+        <ScriptData>H4sIAAAAAAAEAO29B2AcSZYlJi9tynt/SvVK1+B0oQiAYBMk2JBAEOzBiM3mkuwdaUcjKasqgcplVmVdZhZAzO2dvPfee++999577733ujudTif33/8/XGZkAWz2zkrayZ4hgKrIHz9+fB8/Ih6/ntbFqn2atdnRb5ykqf7d8B/05+m7ts7w7bMiL2dNetd88TKrs0Xe5rX32edlNclK7wMB9pPUqKiWR7uP74YfBK0+Xxezo8mn+f6DnZ2d7fvns/3t3d38/vbB/el0e2fn/s79T7O9nfuz+wYKv8A46weNP4LXbb6yozietoqA/qafP1sv+e+zGb7z/vIHudsZ9F7n73udv/c7f9/36FHV7dEO4Yuf+tlJtWyL5TrH5/Z3/e7L5nmxKPgV86t+c7ac5cs248HQt/6fPkkcFTaQZW8TWe7vDxPm6Hcv2+ZyOivq3/331Sn4fZ9nkzf5dK5/p0+y6dv16vFdfeH/1XTc/9mk48MNZJy37ap5dPdunV2NL4p2vp6sm7ye0iAImfG0WtwlqrZEVRpXsy5paBd3lc7b24LPthD67iJrSCbvPn+jn5++WxGNxqtmNz4Ht57C33cY5F44jaCy/vY+07n7/6np3L2lWDTvQ9NtGuh5cTF+tygHZsuQtkvyR6fv8um6zb8W5fe+acrf+1mk/N4mQXpeXaTFsq3S331aFtT/kkzU7/77/u5lNWVM9E8SqBXRquY/06xJf/fn2uArEjv6ZDlL6/Uy/ehDZOOjlNCY1nnW5umUp3Vdcx/peVHm458VjXjv/Sfy506E9nbv/9BM7v43TZifTQ7fvbeJxTuS/s0y0P1vmk4/q67J3qcb6LSqrsjLnOdlmW7nTDJqtarKYnqdTq5XWdOk25DED5Tyn5Vp+PSbnoZhOf7wadjb2TALg14Hz0ydw5v53Qds2iv+9mtZtAf/nyLgJnEXIjxKf0/55ff8WeG3g/8vkevBJn4LeKbLdAcDjCbiTHZ5WRBbzoxt7rDc0aM3xfRt3sIHJzUy46Fp0/2N5H34TZP3G7Q+fW78OuL87Pjs+enTAfI2hPW6+VpyvLvzTZPuZ5MzbzDcw+zzzUrz7jceSf1sWvGvxW/P36TbaWCc0zn58RvZUMnPHvnr9eSn8+nXsy2733i49LPJkzeRN0reN/O8zpmikzxfUjyU5nVd1WnOipKyD6mGtel5XS1S9ZbGv3HSsVKbpuBJNbv+evT//1aU8w2xd9GkTVuQMwseP3vx+a2JXS0WNLKvR+lvPGz6/wKlwfbIEJSU3J6lzXo6zZvmfF2W1+lGSj9j9+Hrs/U3Hnvditg/TGLv7t+7WTEQwBNSDxdV/TXp+P+p4Gmzy/AtPOmLKj2ZZ8uLvEmf5GV1lbZz0gZlsczTl2WeNT87qYDdrxFD7e3/f8tt/d3FjBWzoRBUcDkzLsV7cuLB+1Pwh86JH0bAoRWAYVf3PUn4jYdOP6vC/GADCe8/2DXa75sVVEzcN0ujn005ff8Y6fSFEb9vmG4/F2GS+fuprLf/P+pRo6x+HwAA</ScriptData>
+        <ScriptVersion>1</ScriptVersion>
+        <ScriptGuid>b6e47000-5fd4-11e5-85cc-005056a205d5</ScriptGuid>
+        <ScriptFlags>0</ScriptFlags>
+        <Parameters>
+        </Parameters>
+      </Table>
+    </NewDataSet>
+  </PackedScript>
+</LabTech_Expansion>
