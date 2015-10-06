@@ -70,7 +70,7 @@
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -LogPath $FullLogPath  -ErrorDesc "Error durring config creation: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -LogPath $FullLogPath  -ErrorDesc "Error durring config creation: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
     }
     Else {
@@ -367,7 +367,7 @@ Function Log-Finish{
     Write-Debug "***************************************************************************************************"
   
     if ($Limit){
-        #Limit Log file to 50000 lines
+        #Limit Log file to XX lines
         (Get-Content $FullLogPath -tail $Limit -readcount 0) | Set-Content $FullLogPath -Force -Encoding Unicode
     }
     #Exit calling script if NoExit has not been specified or is set to False
@@ -572,7 +572,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
     }
     Else {   
@@ -595,7 +595,7 @@ Function Export-LTScript {
                 Catch {
                     $ErrorMessage = $_.Exception.Message
                     $FailedItem = $_.Exception.ItemName
-                    Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+                    Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage" -ExitGracefully $True
                 }
             }
             Else {
@@ -631,7 +631,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
     }
     Else {
@@ -662,7 +662,7 @@ Function Export-LTScript {
         Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to save script: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
     }
 
@@ -681,7 +681,7 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Error durring log/backup directory creation: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
     
     Log-Write -FullLogPath $FullLogPath -LineValue "Getting list of all scripts."
@@ -718,9 +718,9 @@ Function Export-LTScript {
     Catch {
             $ErrorMessage = $_.Exception.Message
             $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to update config with last export date: $FailedItem, $ErrorMessage" -ExitGracefully $True
         }
 
-    Log-Finish -FullLogPath $FullLogPath
+    Log-Finish -FullLogPath $FullLogPath -Limit 50000
 
 #endregion
