@@ -293,7 +293,7 @@ Function Log-Error{
     
     #If $ExitGracefully = True then run Log-Finish and exit script
     If ($ExitGracefully -eq $True){
-      Log-Finish -FullLogPath $FullLogPath
+      Log-Finish -FullLogPath $FullLogPath -Limit 50000
       Breaåk
     }
   }
