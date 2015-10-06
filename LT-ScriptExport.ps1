@@ -168,7 +168,7 @@ Function Log-Start{
 
     #Create file and start logging
     If($(Test-Path -Path $FullLogPath) -ne $true) {
-        New-Item -Path $LogPath -Value $LogName -ItemType File
+        New-Item -Path $LogPath -Name $LogName -ItemType File
     }
 
     Add-Content -Path $FullLogPath -Value "***************************************************************************************************"
