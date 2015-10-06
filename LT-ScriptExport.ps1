@@ -436,7 +436,7 @@ Function Get-LTData {
         }
 
         Catch {
-          Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to run query : $query `n$Error[0]" -ExitGracefully $True
+          Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to run query : $query" -ExitGracefully $False
         }
     }
 
