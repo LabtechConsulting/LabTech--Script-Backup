@@ -564,10 +564,10 @@ Function Export-LTScript {
     #Check folder information
 
     #Check if script is at root and not in a folder
-    If ($($ScriptXML.FolderId) -eq 0) {
+    If ($($ScriptXML.FolderId) -eq 0 -or !$($ScriptXML.FolderId)) {
         try {
             #Delete folder information from template
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAll()
         }
         Catch {
             $ErrorMessage = $_.Exception.Message
@@ -575,52 +575,52 @@ Function Export-LTScript {
             Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
         }
     }
-    Else {    
-        #Query MySQL for folder data.
-        $FolderData = Get-LTData -query "SELECT * FROM `scriptfolders` WHERE FolderID=$($ScriptXML.FolderId)"
+    Else {   
+            #Query MySQL for folder data.
+            $FolderData = Get-LTData -query "SELECT * FROM `scriptfolders` WHERE FolderID=$($ScriptXML.FolderId)"
         
-        #Check if folder is no longer present. 
-        if ($FolderData -eq $null) {
-            Log-Write -FullLogPath $FullLogPath -LineValue "ScritID $($ScriptXML.ScriptId) references folder $($ScriptXML.FolderId), this folder is no longer present. Setting to root folder."
-            Log-Write -FullLogPath $FullLogPath -LineValue "It is recomended that you move this script to a folder."
+            #Check if folder is no longer present. 
+            if ($FolderData -eq $null) {
+                Log-Write -FullLogPath $FullLogPath -LineValue "ScritID $($ScriptXML.ScriptId) references folder $($ScriptXML.FolderId), this folder is no longer present. Setting to root folder."
+                Log-Write -FullLogPath $FullLogPath -LineValue "It is recomended that you move this script to a folder."
             
-            #Set to FolderID 0
-            $ExportTemplate.LabTech_Expansion.PackedScript.NewDataSet.Table.FolderId = "0"
-            $ScriptXML.FolderID = 0
+                #Set to FolderID 0
+                $ExportTemplate.LabTech_Expansion.PackedScript.NewDataSet.Table.FolderId = "0"
+                $ScriptXML.FolderID = 0
             
-            try {            
-                #Delete folder information from template
-                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAttribute()
+                try {            
+                    #Delete folder information from template
+                    $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.RemoveAll()
+                }
+                Catch {
+                    $ErrorMessage = $_.Exception.Message
+                    $FailedItem = $_.Exception.ItemName
+                    Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
+                }
             }
-            Catch {
-            $ErrorMessage = $_.Exception.Message
-            $FailedItem = $_.Exception.ItemName
-            Log-Error -FullLogPath $FullLogPath  -ErrorDesc "Unable to remove folder data from XML: $FailedItem, $ErrorMessage `n$Error[0]" -ExitGracefully $True
-            }
-        }
-        Else {
-            #Format the folder name.
-            #Remove special characters
-            $FolderName = $($FolderData.Name).Replace('*','')
-            $FolderName = $FolderName.Replace('/','-')
-            $FolderName = $FolderName.Replace('<','')
-            $FolderName = $FolderName.Replace('>','')
-            $FolderName = $FolderName.Replace(':','')
-            $FolderName = $FolderName.Replace('"','')
-            $FolderName = $FolderName.Replace('\','-')
-            $FolderName = $FolderName.Replace('|','')
-            $FolderName = $FolderName.Replace('?','')
+            Else {
+                #Format the folder name.
+                #Remove special characters
+                $FolderName = $($FolderData.Name).Replace('*','')
+                $FolderName = $FolderName.Replace('/','-')
+                $FolderName = $FolderName.Replace('<','')
+                $FolderName = $FolderName.Replace('>','')
+                $FolderName = $FolderName.Replace(':','')
+                $FolderName = $FolderName.Replace('"','')
+                $FolderName = $FolderName.Replace('\','-')
+                $FolderName = $FolderName.Replace('|','')
+                $FolderName = $FolderName.Replace('?','')
             
-            # Save folder data to the template.
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.FolderID = "$($FolderData.FolderID)"
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.ParentID = "$($FolderData.ParentID)"
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.Name = "$FolderName"
-            $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.GUID = "$($FolderData.GUID)"
-        }
+                # Save folder data to the template.
+                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.FolderID = "$($FolderData.FolderID)"
+                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.ParentID = "$($FolderData.ParentID)"
+                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.Name = "$FolderName"
+                $ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.GUID = "$($FolderData.GUID)"
+            }
     }
 
     #Create Folder Structure. Check for parent folder 
-    If ($($FolderData.ParentId) -eq 0) {
+    If ($($FolderData.ParentId) -eq 0 -or !$($FolderData.ParentId)) {
         try {
             #Create folder
             New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
