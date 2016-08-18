@@ -2,8 +2,8 @@
   <PackedScript>
     <NewDataSet>
       <Table>
-        <ScriptId>90001</ScriptId>
-        <FolderId>0</FolderId>
+        <ScriptId></ScriptId>
+        <FolderId></FolderId>
         <ScriptName>LT-Script Backup</ScriptName>
         <ScriptNotes>This script will export a copy of all LT scripts as an xml file. All scripts will have the last modified data and last user to modify appended to the file.
 Chris Taylor
