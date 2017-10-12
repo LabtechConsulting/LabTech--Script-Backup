@@ -623,7 +623,7 @@ Function Export-LTScript {
     If ($($FolderData.ParentId) -eq 0 -or !$($FolderData.ParentId)) {
         try {
             #Create folder
-            New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
+            New-Item -ItemType Directory -Force -Path "$BackupRoot\$($ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.Name)" | Out-Null
         
             #Save XML
             $ExportTemplate.Save("$BackupRoot\$FolderName\$($FileName).xml")
@@ -689,7 +689,7 @@ Function Export-LTScript {
     $ScriptIDs = @{}
     #Query list of all ScriptID's
     if ($($Config.Settings.LastExport) -eq 0) {
-        $ScriptIDs = Get-LTData "SELECT ScriptID FROM lt_scripts"
+        $ScriptIDs = Get-LTData "SELECT ScriptID FROM lt_scripts order by ScriptID"
     }
     else{
         $Query = $("SELECT ScriptID FROM lt_scripts WHERE Last_Date > " + "'" + $($Config.Settings.LastExport) +"'")
