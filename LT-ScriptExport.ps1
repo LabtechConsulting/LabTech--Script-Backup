@@ -623,7 +623,7 @@ Function Export-LTScript {
     If ($($FolderData.ParentId) -eq 0 -or !$($FolderData.ParentId)) {
         try {
             #Create folder
-            New-Item -ItemType Directory -Force -Path $BackupRoot\$($FolderData.Name) | Out-Null
+            New-Item -ItemType Directory -Force -Path "$BackupRoot\$($ExportTemplate.LabTech_Expansion.PackedScript.ScriptFolder.NewDataSet.Table.Name)" | Out-Null
         
             #Save XML
             $ExportTemplate.Save("$BackupRoot\$FolderName\$($FileName).xml")
